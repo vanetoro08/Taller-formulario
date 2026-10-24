@@ -65,3 +65,35 @@ button:disabled { opacity: 0.6; cursor: wait; }
   outline: 3px solid #f0a500;
   outline-offset: 2px;
 }
+
+/* ---------- Estilos de error ---------- */
+
+/* Nivel 4: el error se marca con el atributo aria-invalid que pone app.js */
+[aria-invalid="true"] {
+  border: 2px solid #c0392b;
+}
+
+/* El checkbox no muestra bien el borde, así que usamos outline */
+input[type="checkbox"][aria-invalid="true"] {
+  outline: 2px solid #c0392b;
+  outline-offset: 2px;
+}
+
+.error {
+  color: #c0392b;
+  min-height: 1.2em;   /* reserva el espacio para que el formulario no "salte" */
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+}
+
+.ayuda {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+/* Nivel 4: cada fila de teléfono en columna, como el resto del formulario */
+#telefonos > div {
+  display: flex;
+  flex-direction: column;
+}
