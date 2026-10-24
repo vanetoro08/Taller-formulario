@@ -42,3 +42,28 @@ Una función pura solo depende de lo que recibe y solo devuelve un resultado: no
 ### ¿Por qué «el correo ya existe» no se puede validar solo con atributos HTML?
 
 Porque los atributos HTML solo pueden revisar el valor que está escrito en el campo (si está vacío, su formato, su longitud…). Saber si un correo ya está registrado depende de información que solo tiene el servidor, así que hay que preguntarle, y esa respuesta llega después (es asíncrona). Eso solo se puede hacer con JavaScript.
+
+## Nivel 5 · Seguridad y usabilidad
+
+### Parte A · La validación del frontend no es seguridad
+
+1. En la versión nativa borramos `min` y `max` del campo Edad con DevTools y enviamos edad 5. El navegador ya no la rechazó y el dato llegó al servidor: la respuesta lo devolvió con `edad: 5`.
+2. Desde la consola enviamos un `fetch` directo con `email: 'no-es-correo'` y `edad: -3`, sin pasar por el formulario, y el servidor también lo aceptó.
+
+**¿Qué demuestra?** Que la validación del navegador solo ayuda al usuario a no equivocarse, pero no protege nada: cualquiera puede modificar el HTML o mandar peticiones sin usar el formulario. Por eso el backend tiene que volver a validar todos los datos con el mismo esquema de reglas, como si nunca hubieran sido validados.
+
+**Consultas parametrizadas:** en vez de armar el SQL pegando el texto del usuario dentro de la consulta, se escribe la consulta con espacios reservados (por ejemplo `SELECT * FROM usuarios WHERE email = ?`) y los datos se envían por separado. Así la base de datos siempre trata lo que escribió el usuario como un dato y nunca como parte del código. Un texto como `' OR '1'='1` se busca literalmente como un correo, en lugar de cambiar la condición de la consulta, y eso evita el SQL injection.
+
+### Parte B · Mostrar datos sin abrir la puerta a XSS
+
+Con `innerHTML`, al registrar el nombre `<b>Ana</b>` el saludo mostró **Ana** en negrita: el navegador interpretó lo que escribió el usuario como HTML. Eso significa que alguien podría meter etiquetas o código que se ejecute en la página (XSS). Con `textContent` se vio literalmente `Hola, <b>Ana</b>`, porque el texto se muestra tal cual y nunca se interpreta.
+
+Revisamos cada `innerHTML` del código. Solo queda uno, el de los teléfonos, y es seguro porque el número `${n}` lo genera nuestro propio código; ahí nunca entra texto escrito por el usuario.
+
+### Parte C · Prueba de usabilidad
+
+| Observación | Campo | Problema | Corrección aplicada |
+|---|---|---|---|
+| 1 | Correo | Al salir «Este correo ya tiene una cuenta. ¿Quieres iniciar sesión?», el compañero se quedó mirando el mensaje sin saber qué hacer, porque el formulario no tiene ninguna opción para iniciar sesión. Al final decidió cambiar el correo por su cuenta. | Se cambió por «Este correo ya está registrado. Usa otro correo.», que dice directamente qué hacer. |
+| 2 | Edad | Con edad 16 salió «El valor mínimo es 18.» y el compañero simplemente puso 18 para que pasara, sin entender que la regla es ser mayor de edad. | Se cambió por «Debes tener al menos 18 años para registrarte.», que explica el motivo de la regla. Para eso `rangoEntero` ahora acepta un mensaje propio para el mínimo. |
+| 3 | Términos | Usando solo el teclado, el compañero intentó 3 veces marcar la casilla de términos con Enter y no se marcaba. En un checkbox la tecla para marcar es Espacio; Enter envía el formulario, así que le volvía a salir el error «Debes aceptar los términos para continuar.» | Se agregó un `keydown` en la casilla para que Enter también la marque o desmarque, sin enviar el formulario. Además se agrandó la casilla y se hizo que el foco amarillo se vea aunque tenga error. |

@@ -1,9 +1,9 @@
-// app.js
 import { reglas, validarCampo, validarFormulario, formatoTelefono } from './validaciones.js';
 
 const form = document.querySelector('#registro');
 const boton = form.querySelector('button[type="submit"]');
 const mensaje = document.querySelector('#mensaje');
+const saludo = document.querySelector('#saludo');
 
 const leerDatos = () => Object.fromEntries(new FormData(form));
 
@@ -14,7 +14,7 @@ function mostrarError(nombre, mensaje) {
   if (error) error.textContent = mensaje ?? '';
 }
 
-// ===== Parte A: validar al salir del campo usando el módulo =====
+// Parte A: validar al salir del campo usando el módulo =====
 
 form.addEventListener('focusout', (e) => {
   if (!e.target.name) return;
@@ -22,7 +22,16 @@ form.addEventListener('focusout', (e) => {
   mostrarError(e.target.name, validarCampo(e.target.name, leerDatos()));
 });
 
-// ===== Parte B: validación asíncrona del correo =====
+// Nivel 5 (usabilidad): Enter en la casilla de términos la marca o desmarca,
+// en vez de enviar el formulario (antes solo funcionaba con Espacio)
+form.elements.terminos.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();  // evita que Enter envíe el formulario
+    e.target.click();    // marca o desmarca la casilla
+  }
+});
+
+// Parte B: validación asíncrona del correo =====
 
 // Simula al servidor: estos correos ya están registrados
 const registrados = ['ana@mail.com', 'admin@mail.com'];
@@ -42,12 +51,12 @@ const revisarCorreo = debounce(async (email) => {
   if (validarCampo('email', { email })) return; // primero el formato
   mostrarError('email', 'Comprobando disponibilidad…');
   const libre = await correoDisponible(email);
-  mostrarError('email', libre ? null : 'Este correo ya tiene una cuenta. ¿Quieres iniciar sesión?');
+  mostrarError('email', libre ? null : 'Este correo ya está registrado. Usa otro correo.');
 }, 500);
 
 form.elements.email.addEventListener('input', (e) => revisarCorreo(e.target.value));
 
-// ===== Parte C: campos dinámicos (varios teléfonos) =====
+// Parte C: campos dinámicos (varios teléfonos)
 
 const lista = document.querySelector('#telefonos');
 const errorTelefonos = document.querySelector('#telefonos-error');
@@ -89,7 +98,7 @@ function revisarTelefonos() {
   return primerError;
 }
 
-// ===== Envío (nivel 3, ahora con el módulo) =====
+//Envío 
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -130,6 +139,13 @@ form.addEventListener('submit', async (e) => {
 
     const creado = await res.json();
     mensaje.textContent = `¡Cuenta creada! Id: ${creado.id}`;
+
+    // Nivel 5, parte B: saludo después del registro
+    // Inseguro: el navegador interpreta el texto como HTML
+    // saludo.innerHTML = `Hola, ${datos.nombre}`;
+    // Seguro: el texto se muestra tal cual
+    saludo.textContent = `Hola, ${datos.nombre}`;
+
     form.reset();
   } catch (err) {
     mensaje.textContent = 'No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.';

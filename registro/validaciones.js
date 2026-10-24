@@ -9,10 +9,10 @@ export const longitud = (min, max) =>
 export const formatoCorreo = () =>
   (v) => (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) ? null : 'Escribe un correo válido, por ejemplo ana@mail.com.');
 
-export const rangoEntero = (min, max) => (v) => {
+export const rangoEntero = (min, max, msgMin = `El valor mínimo es ${min}.`) => (v) => {
   const n = Number(v);
   if (!Number.isInteger(n)) return 'Escribe un número entero.';
-  if (n < min) return `El valor mínimo es ${min}.`;
+  if (n < min) return msgMin;
   if (n > max) return `El valor máximo es ${max}.`;
   return null;
 };
@@ -38,7 +38,7 @@ export const reglas = {
   email: [requerido(), formatoCorreo()],
   password: [requerido(), longitud(8, 64), letraYNumero()],
   confirmar: [requerido(), igualA('password', 'Las contraseñas no coinciden.')],
-  edad: [requerido(), rangoEntero(18, 120)],
+  edad: [requerido(), rangoEntero(18, 120, 'Debes tener al menos 18 años para registrarte.')],
   pais: [requerido('Elige un país.')],
   terminos: [marcado('Debes aceptar los términos para continuar.')],
 };

@@ -79,6 +79,18 @@ input[type="checkbox"][aria-invalid="true"] {
   outline-offset: 2px;
 }
 
+/* Nivel 5 (usabilidad): checkbox más grande y foco visible aunque tenga error.
+   Va después de la regla de error para que el foco amarillo gane. */
+input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+input[type="checkbox"]:focus-visible {
+  outline: 3px solid #f0a500;
+  outline-offset: 2px;
+}
+
 .error {
   color: #c0392b;
   min-height: 1.2em;   /* reserva el espacio para que el formulario no "salte" */
